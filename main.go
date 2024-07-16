@@ -3,14 +3,15 @@ package main
 import (
 	"os"
 
-	"github.com/kurtmc/cloud-engineering-intern-test/analyser"
-	"github.com/kurtmc/cloud-engineering-intern-test/producer"
+	"github.com/SpursFan21/halter_test/analyser"
+	"github.com/SpursFan21/halter_test/producer"
+	"github.com/SpursFan21/halter_test/writer"
 )
 
 func main() {
 	args := os.Args[1:]
 	if len(args) < 1 {
-		println("Usage: go run main.go [producer|analyser]")
+		println("Usage: go run main.go [producer|analyser|writer]")
 		os.Exit(1)
 	}
 
@@ -21,8 +22,10 @@ func main() {
 		producer.Producer()
 	case "analyser":
 		analyser.Analyser()
+	case "writer":
+		writer.Writer()
 	default:
-		println("Invalid application name. Use 'producer' or 'analyser'.")
+		println("Invalid application name. Use 'producer', 'analyser', or 'writer'.")
 		os.Exit(1)
 	}
 }

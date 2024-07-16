@@ -1,4 +1,4 @@
-module github.com/kurtmc/cloud-engineering-intern-test
+module github.com/SpursFan21/halter_test
 
 go 1.22.4
 
