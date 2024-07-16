@@ -1,0 +1,100 @@
+version: '3.8'
+
+services:
+  rabbitmq:
+    image: rabbitmq:3.13
+    restart: always
+    networks:
+      - test_net
+
+  postgres:
+    image: postgres:16.3
+    restart: always
+    environment:
+      POSTGRES_DB: postgres
+      POSTGRES_USER: postgres
+      POSTGRES_PASSWORD: example
+    volumes:
+      - ./postgres/ddl.sql:/docker-entrypoint-initdb.d/ddl.sql
+    networks:
+      - test_net
+
+  location_producer:
+    image: "golang:1.22.5"
+    volumes:
+      - ./:/app
+    depends_on:
+      - rabbitmq
+    command:
+      - bash
+      - -c
+      - |
+        set -e
+        cd /app
+        go run . producer
+    networks:
+      - test_net
+
+  location_writer:
+    image: "golang:1.22.5"
+    volumes:
+      - ./:/app
+    depends_on:
+      - rabbitmq
+      - postgres
+    environment:
+      DATABASE_HOST: postgres
+      DATABASE_PORT: 5432
+      DATABASE_USER: postgres
+      DATABASE_PASSWORD: example
+      DATABASE_DBNAME: postgres
+    command:
+      - bash
+      - -c
+      - |
+        set -e
+        cd /app
+        go run . writer    
+    networks:
+      - test_net
+
+  location_analyser:
+    image: "golang:1.22.5"
+    environment:
+      DATABASE_HOST: postgres
+      DATABASE_PORT: 5432
+      DATABASE_USER: postgres
+      DATABASE_PASSWORD: example
+      DATABASE_DBNAME: postgres
+    volumes:
+      - ./:/app
+    depends_on:
+      - postgres
+    command:
+      - bash
+      - -c
+      - |
+        set -e
+        cd /app
+        go run . analyser
+    networks:
+      - test_net
+
+  test_suite:
+    image: "golang:1.22.5"
+    volumes:
+      - ./:/app
+    depends_on:
+      - postgres
+    command:
+      - bash
+      - -c
+      - |
+        set -e
+        cd /app
+        go test -v ./...
+    networks:
+      - test_net
+
+networks:
+  test_net:
