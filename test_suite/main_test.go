@@ -31,17 +31,15 @@ func checkRabbitMQ() error {
 	return nil
 }
 
-// updated
 func checkPostgres() error {
 	host := "location_storage"
 	port := 5432
 	user := "postgres"
-	password := "postgres"
+	password := "example"
 	dbname := "postgres"
 	psqlInfo := fmt.Sprintf("host=%s port=%d user=%s "+
 		"password=%s dbname=%s sslmode=disable",
 		host, port, user, password, dbname)
-
 	db, err := sql.Open("postgres", psqlInfo)
 	if err != nil {
 		return err
