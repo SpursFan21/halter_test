@@ -1,10 +1,9 @@
-package main
+// writer.go
+
+package writer
 
 import (
-	"encoding/json"
 	"fmt"
-	"log"
-	"os"
 	"time"
 
 	"github.com/jmoiron/sqlx"
@@ -20,7 +19,7 @@ type Message struct {
 	Longitude    float64   `json:"longitude"`
 }
 
-func connectRabbitMQ() (*amqp.Connection, *amqp.Channel, <-chan amqp.Delivery, error) {
+func ConnectRabbitMQ() (*amqp.Connection, *amqp.Channel, <-chan amqp.Delivery, error) {
 	conn, err := amqp.Dial("amqp://guest:guest@rabbitmq:5672/")
 	if err != nil {
 		return nil, nil, nil, fmt.Errorf("failed to connect to RabbitMQ: %w", err)
@@ -59,7 +58,7 @@ func connectRabbitMQ() (*amqp.Connection, *amqp.Channel, <-chan amqp.Delivery, e
 	return conn, ch, msgs, nil
 }
 
-func updateDatabase(db *sqlx.DB, message Message) error {
+func UpdateDatabase(db *sqlx.DB, message Message) error {
 	var existingMessage Message
 	err := db.Get(&existingMessage, "SELECT * FROM locations WHERE serial_number=$1", message.SerialNumber)
 	if err != nil {
@@ -81,48 +80,4 @@ func updateDatabase(db *sqlx.DB, message Message) error {
 	}
 
 	return nil
-}
-
-func main() {
-	// Connect to RabbitMQ
-	conn, ch, msgs, err := connectRabbitMQ()
-	if err != nil {
-		log.Fatalf("Error connecting to RabbitMQ: %v", err)
-	}
-	defer conn.Close()
-	defer ch.Close()
-
-	// Get PostgreSQL connection details from environment variables
-	dbHost := os.Getenv("DATABASE_HOST")
-	dbPort := os.Getenv("DATABASE_PORT")
-	dbUser := os.Getenv("DATABASE_USER")
-	dbPassword := os.Getenv("DATABASE_PASSWORD")
-	dbName := os.Getenv("DATABASE_DBNAME")
-
-	// Connect to PostgreSQL
-	db, err := sqlx.Connect("postgres", fmt.Sprintf("host=%s port=%s user=%s password=%s dbname=%s sslmode=disable",
-		dbHost, dbPort, dbUser, dbPassword, dbName))
-	if err != nil {
-		log.Fatalf("Error connecting to PostgreSQL: %v", err)
-	}
-	defer db.Close()
-
-	// Consume messages from RabbitMQ
-	for msg := range msgs {
-		var message Message
-		err := json.Unmarshal(msg.Body, &message)
-		if err != nil {
-			log.Printf("Failed to decode message: %v", err)
-			continue
-		}
-
-		// Handle the message: update or insert into the database
-		err = updateDatabase(db, message)
-		if err != nil {
-			log.Printf("Failed to update database: %v", err)
-			continue
-		}
-
-		log.Printf("Updated database with message: %+v", message)
-	}
 }
