@@ -3,7 +3,6 @@ module github.com/SpursFan21/halter_test
 go 1.22.4
 
 require (
-	github.com/jmoiron/sqlx v1.3.0 // updated this line
 	github.com/labstack/echo/v4 v4.12.0
 	github.com/lib/pq v1.10.9
 	github.com/rabbitmq/amqp091-go v1.10.0
