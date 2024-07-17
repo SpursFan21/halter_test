@@ -117,11 +117,6 @@ func UpdateDatabase(db *sqlx.DB, message Message) error {
 }
 
 func Writer() {
-	e := echo.New()
-	e.GET("/health", func(c echo.Context) error {
-		return c.NoContent(http.StatusOK)
-	})
-
 	conn, ch, msgs, err := ConnectRabbitMQ()
 	if err != nil {
 		log.Fatalf("Error connecting to RabbitMQ: %v", err)
@@ -134,6 +129,11 @@ func Writer() {
 		log.Fatalf("Error connecting to PostgreSQL: %v", err)
 	}
 	defer db.Close()
+
+	e := echo.New()
+	e.GET("/health", func(c echo.Context) error {
+		return c.NoContent(http.StatusOK)
+	})
 
 	for msg := range msgs {
 		var message Message
