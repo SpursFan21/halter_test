@@ -85,7 +85,7 @@ func checkWriter() error {
 	}
 	defer resp.Body.Close()
 	if resp.StatusCode != http.StatusOK {
-		return fmt.Errorf("writer service returned non-200 status: %v", resp.StatusCode)
+		return err
 	}
 	return nil
 }

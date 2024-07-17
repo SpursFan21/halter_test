@@ -6,10 +6,12 @@ import (
 	"encoding/json"
 	"fmt"
 	"log"
+	"net/http"
 	"os"
 	"time"
 
 	"github.com/jmoiron/sqlx"
+	"github.com/labstack/echo/v4"
 	_ "github.com/lib/pq"
 	amqp "github.com/rabbitmq/amqp091-go"
 )
@@ -115,6 +117,11 @@ func UpdateDatabase(db *sqlx.DB, message Message) error {
 }
 
 func Writer() {
+	e := echo.New()
+	e.GET("/health", func(c echo.Context) error {
+		return c.NoContent(http.StatusOK)
+	})
+
 	conn, ch, msgs, err := ConnectRabbitMQ()
 	if err != nil {
 		log.Fatalf("Error connecting to RabbitMQ: %v", err)
